@@ -33,6 +33,46 @@
     }
   }
   </script>
+
+<style>
+/* Step 2 — premium rooms section */
+.rooms-section{
+  background:linear-gradient(180deg,#f8f5ef 0%,#fffdf9 100%);
+  position:relative;
+  overflow:hidden;
+}
+.rooms-section::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 8% 20%,rgba(196,154,82,.10),transparent 28%),radial-gradient(circle at 92% 75%,rgba(16,47,61,.07),transparent 30%);
+}
+.rooms-section .section-heading,.rooms-section .room-grid{position:relative;z-index:1}
+.rooms-section .section-heading{max-width:760px;margin-bottom:34px}
+.rooms-section .section-heading h2{margin-bottom:10px}
+.room-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;max-width:1120px;margin:0 auto}
+.room-card{position:relative;display:grid;grid-template-columns:44% 56%;min-height:310px;background:#fff;border:1px solid rgba(16,47,61,.10);border-radius:24px;overflow:hidden;box-shadow:0 18px 45px rgba(16,47,61,.10);transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+.room-card:hover{transform:translateY(-7px);box-shadow:0 25px 60px rgba(16,47,61,.16);border-color:rgba(196,154,82,.45)}
+.room-card img{width:100%;height:100%;min-height:310px;object-fit:cover;transition:transform .5s ease}
+.room-card:hover img{transform:scale(1.045)}
+.room-card>div{padding:28px 28px 25px;display:flex;flex-direction:column;align-items:flex-start}
+.room-card>div::before{content:"ROOM";display:inline-block;font-size:11px;letter-spacing:.18em;font-weight:800;color:#b58943;margin-bottom:9px}
+.room-card h3{font-family:Georgia,serif;font-size:34px;line-height:1.05;color:#102f3d;margin:0 0 10px}
+.room-card p{font-size:15px;line-height:1.7;color:#5b6870;margin:0 0 18px}
+.room-price{display:flex;align-items:baseline;gap:5px;color:#102f3d;font-size:24px;margin-top:auto}
+.room-price small{font-size:12px;font-weight:600;color:#7b858a}
+.room-card .room-tag{display:inline-flex;align-items:center;gap:7px;margin-bottom:16px;padding:7px 11px;border-radius:999px;background:#f4ecdc;color:#8c6832;font-size:11px;font-weight:800;letter-spacing:.05em}
+.room-card .room-cta{display:inline-flex;margin-top:18px;padding:11px 16px;border-radius:10px;background:#102f3d;color:#fff;text-decoration:none;font-size:13px;font-weight:800;transition:background .2s ease,transform .2s ease}
+.room-card .room-cta:hover{background:#c49a52;transform:translateY(-1px)}
+.rooms-note{margin:24px auto 0;text-align:center;color:#68757b;font-size:13px;position:relative;z-index:1}
+@media(max-width:900px){
+  .room-grid{grid-template-columns:1fr;max-width:680px}
+}
+@media(max-width:560px){
+  .room-card{grid-template-columns:1fr;min-height:0}
+  .room-card img{height:230px;min-height:230px}
+  .room-card>div{padding:23px}
+  .room-card h3{font-size:30px}
+}
+</style>
 </head>
 <body>
   <header class="navbar">
@@ -95,15 +135,27 @@
       </div>
       <div class="room-grid">
         <article class="room-card">
-          <img src="images/hotel-5.jpeg" alt="Hotel Mountain View guest room" loading="lazy" decoding="async">
-          <div><h3>Room</h3><p>Spacious room with a comfortable bed, seating area and a warm interior.</p><strong class="room-price">₹2,000 <small>/ room / night</small></strong></div>
+          <img src="images/hotel-5.jpeg" alt="Comfortable guest room at Hotel Mountain View" loading="lazy" decoding="async">
+          <div>
+            <span class="room-tag">✦ Comfortable stay</span>
+            <h3>Room</h3>
+            <p>Spacious and welcoming accommodation designed for a relaxed stay in Srinagar.</p>
+            <strong class="room-price">₹2,000 <small>/ room / night</small></strong>
+            <a class="room-cta" href="#booking">Check availability →</a>
+          </div>
         </article>
         <article class="room-card">
-          <img src="images/hotel-7.jpeg" alt="Hotel Mountain View guest room" loading="lazy" decoding="async">
-          <div><h3>Room</h3><p>A practical and comfortable room for couples, friends or family.</p><strong class="room-price">₹2,000 <small>/ room / night</small></strong></div>
+          <img src="images/hotel-7.jpeg" alt="Guest room at Hotel Mountain View" loading="lazy" decoding="async">
+          <div>
+            <span class="room-tag">✦ Relax & unwind</span>
+            <h3>Room</h3>
+            <p>A practical and comfortable space for couples, friends or family visiting Kashmir.</p>
+            <strong class="room-price">₹2,000 <small>/ room / night</small></strong>
+            <a class="room-cta" href="#booking">Check availability →</a>
+          </div>
         </article>
-        
       </div>
+      <p class="rooms-note">Simple, comfortable accommodation in Sonwar Bagh, Srinagar.</p>
     </section>
 
     <section id="facilities" class="section facilities">
