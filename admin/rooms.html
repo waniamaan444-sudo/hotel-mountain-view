@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Hotel Mountain View | Rooms</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f5f3ef;
+      color: #222;
+    }
+
+    .topbar {
+      background: #12304a;
+      color: white;
+      padding: 18px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .topbar h1 {
+      font-size: 24px;
+    }
+
+    .topbar p {
+      margin-top: 4px;
+      color: #d8e0e6;
+      font-size: 13px;
+    }
+
+    .back-btn {
+      background: white;
+      color: #12304a;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .heading {
+      margin-bottom: 25px;
+    }
+
+    .heading h2 {
+      color: #12304a;
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    .heading p {
+      color: #777;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 30px;
+    }
+
+    .summary-card {
+      background: white;
+      padding: 22px;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+    }
+
+    .summary-card h3 {
+      color: #777;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .summary-card strong {
+      color: #12304a;
+      font-size: 28px;
+    }
+
+    .rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .room-card {
+      background: white;
+      padding: 22px;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+    }
+
+    .room-number {
+      color: #12304a;
+      font-size: 25px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .room-name {
+      color: #555;
+      margin-bottom: 15px;
+    }
+
+    .room-info {
+      margin-bottom: 8px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .status {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 7px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .available {
+      background: #e8f7e8;
+      color: #16821b;
+    }
+
+    .reserved {
+      background: #fff0d9;
+      color: #a86400;
+    }
+
+    .occupied {
+      background: #fde4e4;
+      color: #c62828;
+    }
+
+    .loading,
+    .error {
+      background: white;
+      padding: 30px;
+      border-radius: 14px;
+      text-align: center;
+      color: #777;
+    }
+
+    .error {
+      color: #c62828;
+    }
+
+    @media (max-width: 900px) {
+      .rooms-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .summary {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .topbar {
+        padding: 16px;
+      }
+
+      .topbar h1 {
+        font-size: 19px;
+      }
+
+      .container {
+        padding: 0 15px;
+        margin: 25px auto;
+      }
+
+      .rooms-grid,
+      .summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+
+    <div>
+      <h1>Hotel Mountain View</h1>
+      <p>Rooms Management</p>
+    </div>
+
+    <a href="dashboard.html" class="back-btn">
+      ← Dashboard
+    </a>
+
+  </header>
+
+  <main class="container">
+
+    <div class="heading">
+      <h2>Rooms</h2>
+      <p>View and manage the 21 rooms at Hotel Mountain View.</p>
+    </div>
+
+    <div class="summary">
+
+      <div class="summary-card">
+        <h3>Total Rooms</h3>
+        <strong id="totalRooms">0</strong>
+      </div>
+
+      <div class="summary-card">
+        <h3>Available</h3>
+        <strong id="availableRooms">0</strong>
+      </div>
+
+      <div class="summary-card">
+        <h3>Not Available</h3>
+        <strong id="unavailableRooms">0</strong>
+      </div>
+
+    </div>
+
+    <div id="roomsContainer" class="rooms-grid">
+
+      <div class="loading">
+        Loading rooms...
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+
+    const SUPABASE_URL =
+      "https://dbtbedwlzvxpgerdvuko.supabase.co";
+
+    /*
+      Use the SAME publishable key you used
+      in admin/index.html and admin/dashboard.html.
+    */
+
+    const SUPABASE_ANON_KEY =
+      "sb_publishable_ieBCUpH-QXINaYWDJfQJEg_tGiA6JNA";
+
+    const supabaseClient = supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    async function loadRooms() {
+
+      const roomsContainer =
+        document.getElementById("roomsContainer");
+
+      const {
+        data: { session }
+      } = await supabaseClient.auth.getSession();
+
+      if (!session) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      const { data, error } =
+        await supabaseClient
+          .from("rooms")
+          .select("*")
+          .order("room_number", { ascending: true });
+
+      if (error) {
+
+        roomsContainer.innerHTML =
+          `<div class="error">
+            Unable to load rooms.<br><br>
+            ${error.message}
+          </div>`;
+
+        return;
+      }
+
+      const rooms = data || [];
+
+      document.getElementById("totalRooms").textContent =
+        rooms.length;
+
+      const available =
+        rooms.filter(room => room.status === "available").length;
+
+      document.getElementById("availableRooms").textContent =
+        available;
+
+      document.getElementById("unavailableRooms").textContent =
+        rooms.length - available;
+
+      if (rooms.length === 0) {
+
+        roomsContainer.innerHTML =
+          `<div class="loading">
+            No rooms found.
+          </div>`;
+
+        return;
+      }
+
+      roomsContainer.innerHTML = rooms.map(room => {
+
+        const status =
+          String(room.status || "unknown").toLowerCase();
+
+        let statusClass = "reserved";
+
+        if (status === "available") {
+          statusClass = "available";
+        }
+
+        if (status === "occupied") {
+          statusClass = "occupied";
+        }
+
+        return `
+          <div class="room-card">
+
+            <div class="room-number">
+              Room ${room.room_number}
+            </div>
+
+            <div class="room-name">
+              ${room.room_name || "Room"}
+            </div>
+
+            <div class="room-info">
+              💰 ₹${Number(room.price_per_night).toLocaleString("en-IN")}
+              / night
+            </div>
+
+            <div class="room-info">
+              👥 Maximum guests: ${room.max_guests}
+            </div>
+
+            <span class="status ${statusClass}">
+              ${status}
+            </span>
+
+          </div>
+        `;
+
+      }).join("");
+
+    }
+
+    loadRooms();
+
+  </script>
+
+</body>
+</html>
