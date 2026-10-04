@@ -366,8 +366,9 @@
     ).length;
 
   const reservedRooms =
-    totalRooms - availableRooms;
-
+  rooms.filter(room =>
+    String(room.status).toLowerCase() === "reserved"
+  ).length;
   document.getElementById("availableRooms").textContent =
     availableRooms;
 
