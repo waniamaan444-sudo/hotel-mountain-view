@@ -1,3 +1,10 @@
+const SUPABASE_URL = "https://dbtbedwlzvxpgerdvuko.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_ieBCUpH-QXINaYWDJfQJEg_tGiA6JNA";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 const menuBtn=document.querySelector('.menu-btn');
 const nav=document.querySelector('.nav-links');
 menuBtn?.addEventListener('click',()=>nav.classList.toggle('open'));
@@ -52,8 +59,9 @@ function calculateBooking() {
 [checkin, checkout, rooms].forEach(el => el?.addEventListener('input', calculateBooking));
 calculateBooking();
 
-bookingForm?.addEventListener('submit', (e) => {
+bookingForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const data = new FormData(bookingForm);
   const calc = calculateBooking();
 
@@ -62,20 +70,52 @@ bookingForm?.addEventListener('submit', (e) => {
     return;
   }
 
+  const guestName = data.get('name');
+  const phone = data.get('phone');
+  const checkIn = data.get('checkin');
+  const checkOut = data.get('checkout');
+  const roomCount = calc.roomCount;
+  const guests = parseInt(data.get('guests')) || 1;
+  const roomPreference = data.get('room');
+  const message = data.get('message') || 'No special request';
+
+ // Save booking enquiry to Supabase
+const { data: bookingId, error: bookingError } = await supabaseClient
+  .rpc('create_public_booking', {
+    p_full_name: guestName,
+    p_phone: phone,
+    p_check_in: checkIn,
+    p_check_out: checkOut,
+    p_rooms_requested: roomCount,
+    p_guests_count: guests,
+    p_message: `${message} | Room preference: ${roomPreference}`
+  });
+
+if (bookingError) {
+  console.error('Booking save error:', bookingError);
+  alert('Could not save your booking enquiry. Please try again.');
+  return;
+}
+
+  // Prepare WhatsApp message
   const msg = [
     'Hello Hotel Mountain View, I would like to make a booking enquiry.',
     '',
-    `Name: ${data.get('name')}`,
-    `Phone: ${data.get('phone')}`,
-    `Check-in: ${data.get('checkin')}`,
-    `Check-out: ${data.get('checkout')}`,
+    `Name: ${guestName}`,
+    `Phone: ${phone}`,
+    `Check-in: ${checkIn}`,
+    `Check-out: ${checkOut}`,
     `Nights: ${calc.nights}`,
-    `Rooms: ${calc.roomCount}`,
+    `Rooms: ${roomCount}`,
     `Guests: ${data.get('guests')}`,
-    `Room preference: ${data.get('room')}`,
+    `Room preference: ${roomPreference}`,
     `Estimated total: ₹${calc.total.toLocaleString('en-IN')}`,
-    `Message: ${data.get('message') || 'No special request'}`
+    `Message: ${message}`
   ].join('\n');
 
-  window.open('https://wa.me/917006847688?text=' + encodeURIComponent(msg), '_blank');
+  // Open WhatsApp after successfully saving the booking
+  window.open(
+    'https://wa.me/917006847688?text=' + encodeURIComponent(msg),
+    '_blank'
+  );
 });
