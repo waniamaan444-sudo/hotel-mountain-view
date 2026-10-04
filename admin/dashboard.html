@@ -327,32 +327,72 @@
       SUPABASE_ANON_KEY
     );
 
-    async function checkLogin() {
+    async function loadDashboard() {
 
-      const {
-        data: { session }
-      } = await supabaseClient.auth.getSession();
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
 
-      if (!session) {
-        window.location.href = "index.html";
-        return;
-      }
+  if (!session) {
+    window.location.href = "index.html";
+    return;
+  }
 
-      document.getElementById("loading").style.display = "none";
-      document.getElementById("dashboard").style.display = "block";
-    }
+  const { data: rooms, error: roomsError } =
+    await supabaseClient
+      .from("rooms")
+      .select("id, status");
 
-    document
-      .getElementById("logoutBtn")
-      .addEventListener("click", async function() {
+  if (roomsError) {
+    console.error("Rooms error:", roomsError);
+    return;
+  }
 
-        await supabaseClient.auth.signOut();
+  const { count: bookingsCount, error: bookingsError } =
+    await supabaseClient
+      .from("bookings")
+      .select("*", { count: "exact", head: true });
 
-        window.location.href = "index.html";
+  if (bookingsError) {
+    console.error("Bookings error:", bookingsError);
+    return;
+  }
 
-      });
+  const totalRooms = rooms.length;
 
-    checkLogin();
+  const availableRooms =
+    rooms.filter(room =>
+      String(room.status).toLowerCase() === "available"
+    ).length;
+
+  const reservedRooms =
+    totalRooms - availableRooms;
+
+  document.getElementById("availableRooms").textContent =
+    availableRooms;
+
+  document.getElementById("reservedRooms").textContent =
+    reservedRooms;
+
+  document.getElementById("totalBookings").textContent =
+    bookingsCount || 0;
+
+  document.getElementById("loading").style.display = "none";
+
+  document.getElementById("dashboard").style.display = "block";
+}
+
+document
+  .getElementById("logoutBtn")
+  .addEventListener("click", async function() {
+
+    await supabaseClient.auth.signOut();
+
+    window.location.href = "index.html";
+
+  });
+
+loadDashboard();
 
   </script>
 
