@@ -152,21 +152,28 @@
 
         message.textContent = "Logging in...";
 
-        const { data, error } =
-          await supabaseClient.auth.signInWithPassword({
-            email: email,
-            password: password
-          });
+       try {
 
-        if (error) {
-          message.textContent = error.message;
-          return;
-        }
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
 
-        message.textContent = "Login successful!";
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
 
-        window.location.href = "dashboard.html";
+  message.textContent = "Login successful!";
 
+  window.location.href = "dashboard.html";
+
+} catch (error) {
+
+  message.textContent = "Connection error: " + error.message;
+
+}
       });
 
   </script>
