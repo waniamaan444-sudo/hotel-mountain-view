@@ -353,10 +353,11 @@
             <div class="room-info">
               👥 Maximum guests: ${room.max_guests}
             </div>
-
-            <span class="status ${statusClass}">
-              ${status}
-            </span>
+<select class="status-select" data-room-id="${room.id}">
+  <option value="available" ${status === "available" ? "selected" : ""}>Available</option>
+  <option value="reserved" ${status === "reserved" ? "selected" : ""}>Reserved</option>
+  <option value="occupied" ${status === "occupied" ? "selected" : ""}>Occupied</option>
+</select>
 
           </div>
         `;
@@ -364,7 +365,29 @@
       }).join("");
 
     }
+document.addEventListener("change", async function (event) {
 
+  if (!event.target.classList.contains("status-select")) {
+    return;
+  }
+
+  const roomId = event.target.dataset.roomId;
+  const newStatus = event.target.value;
+
+  const { error } = await supabaseClient
+    .from("rooms")
+    .update({ status: newStatus })
+    .eq("id", roomId);
+
+  if (error) {
+    console.error("Status update error:", error);
+    alert("Could not update room status.");
+    return;
+  }
+
+  alert("Room status updated successfully.");
+  
+});
     loadRooms();
 
   </script>
