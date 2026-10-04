@@ -556,9 +556,11 @@
 
             </div>
 
-            <span class="status">
-              ${status}
-            </span>
+            <select class="booking-status" data-booking-id="${booking.id}">
+  <option value="pending" ${status.toLowerCase() === "pending" ? "selected" : ""}>Pending</option>
+  <option value="confirmed" ${status.toLowerCase() === "confirmed" ? "selected" : ""}>Confirmed</option>
+  <option value="cancelled" ${status.toLowerCase() === "cancelled" ? "selected" : ""}>Cancelled</option>
+</select>
 
           </div>
 
@@ -717,7 +719,29 @@
     /*
       Load page
     */
+document.addEventListener("change", async function (event) {
 
+  if (!event.target.classList.contains("booking-status")) {
+    return;
+  }
+
+  const bookingId = event.target.dataset.bookingId;
+  const newStatus = event.target.value;
+
+  const { error } = await supabaseClient
+    .from("bookings")
+    .update({ status: newStatus })
+    .eq("id", bookingId);
+
+  if (error) {
+    console.error("Booking status update error:", error);
+    alert("Could not update booking status.");
+    return;
+  }
+
+  alert("Booking status updated successfully.");
+
+});
     loadBookings();
 
   </script>
