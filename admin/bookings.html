@@ -367,7 +367,16 @@
 
         return;
       }
+const { data: roomsData, error: roomsError } = await supabaseClient
+  .from("rooms")
+  .select("id, room_number, price_per_night, status")
+  .order("room_number", { ascending: true });
 
+if (roomsError) {
+  console.error("Rooms loading error:", roomsError);
+}
+
+const rooms = roomsData || [];
 
       /*
         Get guest information
@@ -628,7 +637,20 @@
               <span class="detail-value">
                 ${roomsRequested}
               </span>
-
+<div class="room-assignment">
+  <label>Assign Room</label>
+  <select class="room-select" data-booking-id="${booking.id}">
+    <option value="">Select a room</option>
+    ${rooms
+      .filter(room => String(room.status).toLowerCase() === "available")
+      .map(room => `
+        <option value="${room.id}">
+          Room ${room.room_number}
+        </option>
+      `)
+      .join("")}
+  </select>
+</div>
             </div>
 
 
@@ -740,6 +762,94 @@ document.addEventListener("change", async function (event) {
   }
 
   alert("Booking status updated successfully.");
+
+});
+    document.addEventListener("change", async function (event) {
+
+  if (!event.target.classList.contains("room-select")) {
+    return;
+  }
+
+  const bookingId = event.target.dataset.bookingId;
+  const roomId = event.target.value;
+
+  if (!roomId) {
+    return;
+  }
+
+  // Get the selected room
+  const { data: room, error: roomError } = await supabaseClient
+    .from("rooms")
+    .select("id, room_number, price_per_night, status")
+    .eq("id", roomId)
+    .single();
+
+  if (roomError || !room) {
+    console.error("Room loading error:", roomError);
+    alert("Could not load the selected room.");
+    return;
+  }
+
+  // Get the booking dates
+  const { data: booking, error: bookingError } = await supabaseClient
+    .from("bookings")
+    .select("check_in, check_out")
+    .eq("id", bookingId)
+    .single();
+
+  if (bookingError || !booking) {
+    console.error("Booking loading error:", bookingError);
+    alert("Could not load booking details.");
+    return;
+  }
+
+  const checkIn = new Date(booking.check_in + "T00:00:00");
+  const checkOut = new Date(booking.check_out + "T00:00:00");
+
+  const nights = Math.max(
+    1,
+    Math.round((checkOut - checkIn) / (1000 * 60 * 60 * 24))
+  );
+
+  const totalAmount = Number(room.price_per_night) * nights;
+
+  // Create the room assignment
+  const { error: assignmentError } = await supabaseClient
+    .from("booking_rooms")
+    .insert([
+      {
+        booking_id: bookingId,
+        room_id: room.id,
+        price_per_night: room.price_per_night,
+        nights: nights,
+        total_amount: totalAmount,
+        payment_status: "unpaid",
+        status: "assigned"
+      }
+    ]);
+
+  if (assignmentError) {
+    console.error("Room assignment error:", assignmentError);
+    alert("Could not assign this room.");
+    return;
+  }
+
+  // Mark the room as reserved
+  const { error: updateError } = await supabaseClient
+    .from("rooms")
+    .update({ status: "reserved" })
+    .eq("id", room.id);
+
+  if (updateError) {
+    console.error("Room status update error:", updateError);
+    alert("Room was assigned, but its status could not be updated.");
+    return;
+  }
+
+  alert(`Room ${room.room_number} assigned successfully.`);
+
+  // Reload bookings so the page reflects the latest data
+  loadBookings();
 
 });
     loadBookings();
