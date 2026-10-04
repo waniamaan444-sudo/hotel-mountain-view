@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Hotel Mountain View | Admin Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f5f3ef;
+      color: #222;
+    }
+
+    .topbar {
+      background: #12304a;
+      color: white;
+      padding: 18px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar h1 {
+      font-size: 24px;
+    }
+
+    .topbar p {
+      margin-top: 4px;
+      color: #d8e0e6;
+      font-size: 13px;
+    }
+
+    .logout {
+      border: none;
+      background: white;
+      color: #12304a;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .welcome {
+      margin-bottom: 25px;
+    }
+
+    .welcome h2 {
+      color: #12304a;
+      font-size: 28px;
+      margin-bottom: 7px;
+    }
+
+    .welcome p {
+      color: #777;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 35px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+    }
+
+    .card .icon {
+      font-size: 28px;
+      margin-bottom: 15px;
+    }
+
+    .card h3 {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 8px;
+    }
+
+    .card .number {
+      font-size: 30px;
+      font-weight: 700;
+      color: #12304a;
+    }
+
+    .section {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+      margin-bottom: 25px;
+    }
+
+    .section h2 {
+      color: #12304a;
+      margin-bottom: 8px;
+    }
+
+    .section p {
+      color: #777;
+      margin-bottom: 20px;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+
+    .action {
+      border: 1px solid #e1e1e1;
+      background: #fafafa;
+      padding: 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: center;
+      color: #12304a;
+      font-weight: 600;
+    }
+
+    .action:hover {
+      background: #f0f3f5;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 25px;
+      color: #888;
+      font-size: 13px;
+    }
+
+    #loading {
+      text-align: center;
+      padding: 50px;
+      color: #777;
+    }
+
+    @media (max-width: 900px) {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .quick-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .topbar {
+        padding: 16px;
+      }
+
+      .topbar h1 {
+        font-size: 19px;
+      }
+
+      .container {
+        margin: 25px auto;
+        padding: 0 15px;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .welcome h2 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="loading">
+    Checking admin login...
+  </div>
+
+  <div id="dashboard" style="display:none;">
+
+    <header class="topbar">
+      <div>
+        <h1>Hotel Mountain View</h1>
+        <p>Admin / CRM Dashboard</p>
+      </div>
+
+      <button class="logout" id="logoutBtn">
+        Logout
+      </button>
+    </header>
+
+    <main class="container">
+
+      <div class="welcome">
+        <h2>Dashboard</h2>
+        <p>Manage your hotel bookings, rooms and guests from one place.</p>
+      </div>
+
+      <div class="cards">
+
+        <div class="card">
+          <div class="icon">🏨</div>
+          <h3>Total Rooms</h3>
+          <div class="number">21</div>
+        </div>
+
+        <div class="card">
+          <div class="icon">🟢</div>
+          <h3>Available Rooms</h3>
+          <div class="number" id="availableRooms">21</div>
+        </div>
+
+        <div class="card">
+          <div class="icon">🔴</div>
+          <h3>Reserved Rooms</h3>
+          <div class="number" id="reservedRooms">0</div>
+        </div>
+
+        <div class="card">
+          <div class="icon">📋</div>
+          <h3>Total Bookings</h3>
+          <div class="number" id="totalBookings">0</div>
+        </div>
+
+      </div>
+
+      <div class="section">
+
+        <h2>Quick Actions</h2>
+
+        <p>
+          Use these options to manage Hotel Mountain View.
+        </p>
+
+        <div class="quick-actions">
+
+          <div class="action">
+            🏨<br><br>
+            Manage Rooms
+          </div>
+
+          <div class="action">
+            📋<br><br>
+            View Bookings
+          </div>
+
+          <div class="action">
+            👥<br><br>
+            Manage Guests
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="section">
+
+        <h2>Today's Activity</h2>
+
+        <p>
+          Check-ins and check-outs will appear here once bookings are connected.
+        </p>
+
+        <div class="quick-actions">
+
+          <div class="action">
+            📅<br><br>
+            Today's Check-ins<br>
+            <strong>0</strong>
+          </div>
+
+          <div class="action">
+            🚪<br><br>
+            Today's Check-outs<br>
+            <strong>0</strong>
+          </div>
+
+          <div class="action">
+            💰<br><br>
+            Today's Revenue<br>
+            <strong>₹0</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+    <div class="footer">
+      Hotel Mountain View · Srinagar, Jammu & Kashmir
+    </div>
+
+  </div>
+
+  <script>
+
+    const SUPABASE_URL = "https://dbtbedwlzvxpgerdvuko.supabase.co";
+
+    /*
+      IMPORTANT:
+      Paste the SAME publishable key that you used
+      in admin/index.html between the quotation marks below.
+    */
+    const SUPABASE_ANON_KEY = "sb_publishable_ieBCUpH-QXINaYWDJfQJEg_tGiA6JNA";
+
+    const supabaseClient = supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    async function checkLogin() {
+
+      const {
+        data: { session }
+      } = await supabaseClient.auth.getSession();
+
+      if (!session) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+    }
+
+    document
+      .getElementById("logoutBtn")
+      .addEventListener("click", async function() {
+
+        await supabaseClient.auth.signOut();
+
+        window.location.href = "index.html";
+
+      });
+
+    checkLogin();
+
+  </script>
+
+</body>
+</html>
